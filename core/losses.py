@@ -69,7 +69,7 @@ class losses_computer():
         for item in out_d:
             for i in range(len(out_d[item])):
                 if item == "content" and not self.no_masks:
-                    raise NotImplementedError("w/o --no_masks is not implemented in this release")
+                    losses[item] = losses.get(item, 0) + self.content_segm_loss(out_d[item][i], data, real, forD)
                 else:
                     losses[item] = losses.get(item, 0) + self.loss_function(out_d[item][i], real, forD)
 

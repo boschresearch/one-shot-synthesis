@@ -10,7 +10,7 @@ class Content_FA(nn.Module):
         self.ranges = (0.10, 0.30)
         self.no_mask = no_mask
         if not self.no_mask:
-            raise NotImplementedError("w/o --no_masks is not implemented in this release")
+            self.num_mask_channels = num_mask_channels
 
     def mix(self, y):
         """
@@ -45,10 +45,12 @@ class Content_FA(nn.Module):
 
     def forward(self, y):
         ans = y
+        if not self.no_mask: # --- Apply only on background if masks are given --- #
+            y = ans[:ans.shape[0]//self.num_mask_channels]
         y = self.mix(y)
         y = self.drop(y)
         if not self.no_mask:
-            raise NotImplementedError("w/o --no_masks is not implemented in this release")
+            ans[:ans.shape[0]//self.num_mask_channels] = y
         else:
             ans = y
         return ans
@@ -63,7 +65,8 @@ class Layout_FA(nn.Module):
 
     def forward(self, y, masks):
         if not self.no_mask:
-            raise NotImplementedError("w/o --no_masks is not implemented in this release")
+            mask_for_FA = torch.nn.functional.interpolate(masks, size=(y.shape[2], y.shape[3]), mode="nearest")
+            ans = self.func_with_mask(y, mask_for_FA)
         else:
             ans = self.func_without_mask(y)
         return ans

@@ -40,7 +40,14 @@ class Dataset(torch.utils.data.Dataset):
 
         # --- masks --- #
         if os.path.isdir(self.root_masks) and not opt.no_masks:
-            raise NotImplementedError("w/o --no_masks is not implemented in this release")
+            self.list_masks = self.get_frames_list(self.root_masks)
+            assert len(self.list_imgs) == len(self.list_masks), \
+                "Different number of images and masks %d vs %d" % (len(self.list_imgs), len(self.list_masks))
+            for i in range(len(self.list_imgs)):
+                assert os.path.splitext(self.list_imgs[i])[0] == os.path.splitext(self.list_masks[i])[0], \
+                "Image and its mask must have same names %s - %s" % (self.list_imgs[i], self.list_masks[i])
+            self.num_mask_channels = self.get_num_mask_channels()
+            self.no_masks = False
         else:
             self.no_masks = True
             self.num_mask_channels = None
@@ -125,7 +132,11 @@ class Dataset(torch.utils.data.Dataset):
 
         # --- mask ---#
         if not self.no_masks:
-            raise NotImplementedError("w/o --no_masks is not implemented in this release")
+            mask_pil = Image.open(os.path.join(self.root_masks, self.list_imgs[idx][:-4] + ".png"))
+            mask = F.to_tensor(F.resize(mask_pil, size=target_size, interpolation=Image.NEAREST))
+            mask = self.create_mask_channels(mask)  # mask should be N+1 channels
+            output["masks"] = mask
+            assert img.shape[1:] == mask.shape[1:], "Image and mask must have same dims %s" % (self.list_imgs[idx])
         return output
 
 

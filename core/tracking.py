@@ -118,7 +118,8 @@ class image_saver():
         images = (fake["images"][-1] + 1) / 2
         torchvision.utils.save_image(images, os.path.join(self.folder_images, epoch+self.ext))
         if not self.no_masks:
-            raise NotImplementedError("w/o --no_masks is not implemented in this release")
+            painted_masks = self.paint_mask(fake["masks"])
+            torchvision.utils.save_image(painted_masks, os.path.join(self.folder_images, epoch+"_mask"+self.ext))
 
     def paint_mask(self, masks):
         ans = torch.zeros((masks.shape[0], 3, masks.shape[2], masks.shape[3]))

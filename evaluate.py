@@ -47,16 +47,16 @@ dataroot = getattr(new_opt, "dataroot")
 dataset_name = getattr(new_opt, "dataset_name")
 path_real_images = os.path.join(dataroot, dataset_name, "image")
 if not no_masks:
-    raise NotImplementedError("w/o --no_masks is not implemented in this release")
+    path_real_masks = os.path.join(dataroot, dataset_name, "mask")
 
 # --- Prepare files and images to compute metrics --- #
 names_real_image = sorted(os.listdir(path_real_images))
 if not no_masks:
-    raise NotImplementedError("w/o --no_masks is not implemented in this release")
+    names_real_masks = sorted(os.listdir(path_real_masks))
 names_fake = sorted(os.listdir(os.path.join(exp_folder)))
 names_fake_image = [item for item in names_fake if "mask" not in item]
 if not no_masks:
-    raise NotImplementedError("w/o --no_masks is not implemented in this release")
+    names_fake_masks = [item[:-4]+"_mask"+item[-4:] for item in names_fake_image]
 list_real_image, list_fake_image = list(), list()
 for i in range(len(names_fake_image)):
     im = (Image.open(os.path.join(exp_folder, names_fake_image[i])).convert("RGB"))
@@ -72,7 +72,8 @@ with torch.no_grad():
     lpips = LPIPS(list_fake_image)
     dist_to_tr, dist_to_tr_byimage = LPIPS_to_train(list_real_image, list_fake_image, names_fake_image)
 if not no_masks:
-    raise NotImplementedError("w/o --no_masks is not implemented in this release")
+    miou_tensor, miou_byimage, acc_byimage = mIoU(path_real_images, names_real_image, path_real_masks, names_real_masks,
+         exp_folder, names_fake_image, names_fake_masks, im_res)
 
 # --- Save the metrics under .${exp_name}/metrics --- #
 save_fld = os.path.join(args.checkpoints_dir, args.exp_name, "metrics")
@@ -93,5 +94,8 @@ np.save(os.path.join(save_fld, str(args.epoch))+"lpips", lpips.cpu())
 np.save(os.path.join(save_fld, str(args.epoch))+"dist_to_tr", dist_to_tr.cpu())
 np.save(os.path.join(save_fld, str(args.epoch))+"dist_to_tr_byimage", dist_to_tr_byimage)
 if not no_masks:
-    raise NotImplementedError("w/o --no_masks is not implemented in this release")
+    # format for segm_miou_accuracy is 1) Accuracy (val->tr) 2) mIoU (val->tr) 4) Accuracy (tr->val) 5) mIoU (tr->val)
+    np.save(os.path.join(save_fld, str(args.epoch))+"segm_miou_accuracy", miou_tensor)
+    np.save(os.path.join(save_fld, str(args.epoch))+"segm_accuracy_byimage", acc_byimage)
+    np.save(os.path.join(save_fld, str(args.epoch))+"segm_miou_byimage", miou_byimage)
 print("--- Saved metrics at %s ---" % (save_fld))

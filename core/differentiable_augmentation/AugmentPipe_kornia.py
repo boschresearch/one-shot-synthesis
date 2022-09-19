@@ -14,11 +14,17 @@ class AugmentPipe_kornia(torch.nn.Module):
     def forward(self, batch):
         x = batch["images"]
         if not self.no_masks:
-            raise ValueError("Kornia augmentations without --no_masks regime is not supported")
+            mask = batch["masks"]
 
         ref = x
+        if not self.no_masks:
+            new_mask = mask.clone()
         sh = x[-1].shape
         x = combine_fakes(x)
+
+        if not self.no_masks:
+            for i in range(len(x)):
+                x[i] = torch.cat((x[i], mask[i].unsqueeze(0).repeat(1, 2, 1, 1)[:, :3, :, :]), dim=(0))
 
         if random.random() < self.prob/2:
             tr = kornia.augmentation.RandomCrop(size=(sh[2], sh[3]), same_on_batch=True)
@@ -54,9 +60,16 @@ class AugmentPipe_kornia(torch.nn.Module):
             for i in range(sh[0]):
                 x[i] = translate_h_fake(x[i], fraction=(0.05, 0.3))
 
+        if not self.no_masks:
+            for i in range(len(x)):
+                new_mask[i] = x[i][-1][0:2]
+                x[i] = x[i][:-1]
+
         x = detach_fakes(x, ref)
 
-        batch["image"] = x
+        batch["images"] = x
+        if not self.no_masks:
+            batch["masks"] = new_mask
         return batch
 
 

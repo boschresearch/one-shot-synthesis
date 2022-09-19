@@ -1,4 +1,4 @@
-name: sivgan
+name: osmis
 channels:
   - pytorch
   - conda-forge
