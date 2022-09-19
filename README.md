@@ -60,7 +60,7 @@ By default, 100 image-mask pairs will be generated and saved in ```./checkpoints
 To compute metrics for the set of generated images, execute
 
 ```
-python evaluate.py --exp_name test_run --which_epoch 150000 
+python evaluate.py --exp_name test_run --epoch 150000 
 ```
 
 The computed SIFID, LPIPS, mIoU, and Distance to train. metrics will be saved in ```./checkpoints/$exp_name/metrics``` as numpy files. To evaluate SIFID at different InceptionV3 layers, you can call the script with a ```--sifid_all_layers``` option. 
