@@ -109,7 +109,7 @@ class Generator(nn.Module):
             self.body.append(cur_block)
             self.rgb_converters.append(cur_rgb)
         if not self.no_masks:
-            raise NotImplementedError("w/o --no_masks is not implemented in this release")
+            self.mask_converter = nn.Conv2d(num_of_channels[i+1], self.num_mask_channels, 3, padding=1, bias=True)
         print("Created Generator with %d parameters" % (sum(p.numel() for p in self.parameters())))
 
     def generate(self, z, get_feat=False):
@@ -127,7 +127,9 @@ class Generator(nn.Module):
         if get_feat:
              output["features"] = ans_feat
         if not self.no_masks:
-            raise NotImplementedError("w/o --no_masks is not implemented in this release")
+            mask = self.mask_converter(x)
+            mask = F.softmax(mask, dim=1)
+            output["masks"] = mask
         return output
 
 
@@ -169,7 +171,8 @@ class Discriminator(nn.Module):
         self.bernoulli_warmup = config_D["bernoulli_warmup"]
         num_of_channels = get_channels("Discriminator", config_D["ch_D"])[:self.num_blocks + 1]
         if not self.no_masks:
-            raise NotImplementedError("w/o --no_masks is not implemented in this release")
+            for i in range(self.num_blocks_ll+1, self.num_blocks):
+                num_of_channels[i] = int(num_of_channels[i] * 2)
         self.feature_prev_ratio = 8  # for msg concatenation
 
         self.body_ll, self.body_content, self.body_layout = nn.ModuleList([]), nn.ModuleList([]), nn.ModuleList([])
@@ -235,7 +238,7 @@ class Discriminator(nn.Module):
         # --- D content --- #
         y_con = y
         if not self.no_masks:
-            raise NotImplementedError("w/o --no_masks is not implemented in this release")
+            y_con = self.content_masked_attention(y, masks, for_real, epoch)
         y_con = torch.mean(y_con, dim=(2, 3), keepdim=True)
         if for_real:
             y_con = self.content_FA(y_con)

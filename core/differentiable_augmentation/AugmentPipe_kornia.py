@@ -15,7 +15,8 @@ class AugmentPipe_kornia(torch.nn.Module):
         x = batch["images"]
         if not self.no_masks:
             mask = batch["masks"]
-
+            mask_ch = mask.shape[1]
+            
         ref = x
         if not self.no_masks:
             new_mask = mask.clone()
@@ -24,8 +25,13 @@ class AugmentPipe_kornia(torch.nn.Module):
 
         if not self.no_masks:
             for i in range(len(x)):
-                x[i] = torch.cat((x[i], mask[i].unsqueeze(0).repeat(1, 2, 1, 1)[:, :3, :, :]), dim=(0))
-
+                for ch in range(mask_ch, 0, -3):
+                    if ch > 2:
+                        x[i] = torch.cat((x[i], mask[i].unsqueeze(0)[:, ch-3:ch, :, :]), dim=(0))
+                    else:
+                        x[i] = torch.cat((x[i], mask[i].unsqueeze(0).repeat(1, 4-ch, 1, 1)[:, :3, :, :]), dim=(0))
+                    
+                        
         if random.random() < self.prob/2:
             tr = kornia.augmentation.RandomCrop(size=(sh[2], sh[3]), same_on_batch=True)
             for i in range(sh[0]):
@@ -62,9 +68,12 @@ class AugmentPipe_kornia(torch.nn.Module):
 
         if not self.no_masks:
             for i in range(len(x)):
-                new_mask[i] = x[i][-1][0:2]
-                x[i] = x[i][:-1]
-
+                for ch in reversed(range(mask_ch, 0, -3)):
+                    if ch > 2:
+                        new_mask[i, ch-3:ch] = x[i][-1-(ch-1)//3]
+                    else:
+                        new_mask[i, :ch] = x[i][-1][:ch]
+                x[i] = x[i][:-1-(ch-1)//3]
         x = detach_fakes(x, ref)
 
         batch["images"] = x
