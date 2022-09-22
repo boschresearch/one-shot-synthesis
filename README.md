@@ -1,7 +1,7 @@
 
 ﻿# Overview
 
-This repository implements OSMIS, an unconditional GAN model for one-shot synthesis of images and segmentation masks ([Link to WACV 2023 Paper](???)). The code also contains the implementation of the one-shot image synthesis baseline [SIV-GAN](https://arxiv.org/abs/2103.13389) (also was presented as [One-Shot GAN](https://openaccess.thecvf.com/content/CVPR2021W/LLID/html/Sushko_One-Shot_GAN_Learning_To_Generate_Samples_From_Single_Images_and_CVPRW_2021_paper.html)). The code allows the users to
+This repository implements OSMIS, an unconditional GAN model for one-shot synthesis of images and segmentation masks ([Link to WACV 2023 Paper](https://arxiv.org/abs/2209.07547)). The code also contains the implementation of the one-shot image synthesis baseline [SIV-GAN](https://arxiv.org/abs/2103.13389) (also was presented as [One-Shot GAN](https://openaccess.thecvf.com/content/CVPR2021W/LLID/html/Sushko_One-Shot_GAN_Learning_To_Generate_Samples_From_Single_Images_and_CVPRW_2021_paper.html)). The code allows the users to
 reproduce and extend the results reported in the studies. Please cite the papers when reporting, reproducing or extending the results.
 
 
@@ -88,7 +88,7 @@ If you use this code please cite
 @article{sushko2022one,
   title={One-Shot Synthesis of Images and Segmentation Masks},
   author={Sushko, Vadim and Zhang, Dan and Gall, Juergen and Khoreva, Anna},
-  journal={???},
+  journal={arXiv preprint:2209.07547},
   year={2022}
 }
 ```
